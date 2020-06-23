@@ -6,12 +6,12 @@ import './ConversationListItem.css';
 export default function ConversationListItem(props) {
   useEffect(() => {
     shave('.conversation-snippet', 20);
-  })
+  });
 
-    const { photo, name, text } = props.data;
+    const { photo, name, text, id } = props.data;
 
     return (
-      <div className="conversation-list-item">
+      <div className="conversation-list-item" onClick={() => props.onclick(id, name)}>
         <img className="conversation-photo" src={photo} alt="conversation" />
         <div className="conversation-info">
           <h1 className="conversation-title">{ name }</h1>

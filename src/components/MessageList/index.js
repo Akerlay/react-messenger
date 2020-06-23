@@ -1,89 +1,30 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useRef} from 'react';
 import Compose from '../Compose';
 import Toolbar from '../Toolbar';
-import ToolbarButton from '../ToolbarButton';
 import Message from '../Message';
 import moment from 'moment';
+import { Element, scroller } from 'react-scroll'
+
+
 
 import './MessageList.css';
 
-const MY_USER_ID = 'apple';
+
 
 export default function MessageList(props) {
-  const [messages, setMessages] = useState([])
-
+  const MY_USER_ID = localStorage.getItem("USER_ID");
+  const msgInputRef = useRef();
   useEffect(() => {
-    getMessages();
-  },[])
+    scroller.scrollTo('scroll-container-second-element', {
+      duration: 0,
+      delay: 0,
+      smooth: 'true',
+      containerId: 'scroll-container'
+    });
 
-  
-  const getMessages = () => {
-     var tempMessages = [
-        {
-          id: 1,
-          author: 'apple',
-          message: 'Hello world! This is a long message that will hopefully get wrapped by our message bubble component! We will see how well it works.',
-          timestamp: new Date().getTime()
-        },
-        {
-          id: 2,
-          author: 'orange',
-          message: 'It looks like it wraps exactly as it is supposed to. Lets see what a reply looks like!',
-          timestamp: new Date().getTime()
-        },
-        {
-          id: 3,
-          author: 'orange',
-          message: 'Hello world! This is a long message that will hopefully get wrapped by our message bubble component! We will see how well it works.',
-          timestamp: new Date().getTime()
-        },
-        {
-          id: 4,
-          author: 'apple',
-          message: 'It looks like it wraps exactly as it is supposed to. Lets see what a reply looks like!',
-          timestamp: new Date().getTime()
-        },
-        {
-          id: 5,
-          author: 'apple',
-          message: 'Hello world! This is a long message that will hopefully get wrapped by our message bubble component! We will see how well it works.',
-          timestamp: new Date().getTime()
-        },
-        {
-          id: 6,
-          author: 'apple',
-          message: 'It looks like it wraps exactly as it is supposed to. Lets see what a reply looks like!',
-          timestamp: new Date().getTime()
-        },
-        {
-          id: 7,
-          author: 'orange',
-          message: 'Hello world! This is a long message that will hopefully get wrapped by our message bubble component! We will see how well it works.',
-          timestamp: new Date().getTime()
-        },
-        {
-          id: 8,
-          author: 'orange',
-          message: 'It looks like it wraps exactly as it is supposed to. Lets see what a reply looks like!',
-          timestamp: new Date().getTime()
-        },
-        {
-          id: 9,
-          author: 'apple',
-          message: 'Hello world! This is a long message that will hopefully get wrapped by our message bubble component! We will see how well it works.',
-          timestamp: new Date().getTime()
-        },
-        {
-          id: 10,
-          author: 'orange',
-          message: 'It looks like it wraps exactly as it is supposed to. Lets see what a reply looks like!',
-          timestamp: new Date().getTime()
-        },
-      ]
-      setMessages([...messages, ...tempMessages])
-  }
-
+  }, [props.messages]);
   const renderMessages = () => {
+    let messages = [...props.messages];
     let i = 0;
     let messageCount = messages.length;
     let tempMessages = [];
@@ -99,7 +40,7 @@ export default function MessageList(props) {
       let startsSequence = true;
       let endsSequence = true;
       let showTimestamp = true;
-
+    console.log(current);
       if (previous) {
         let previousMoment = moment(previous.timestamp);
         let previousDuration = moment.duration(currentMoment.diff(previousMoment));
@@ -109,7 +50,7 @@ export default function MessageList(props) {
           startsSequence = false;
         }
 
-        if (previousDuration.as('hours') < 1) {
+        if (previousDuration.as('days') < 1) {
           showTimestamp = false;
         }
       }
@@ -132,37 +73,44 @@ export default function MessageList(props) {
           endsSequence={endsSequence}
           showTimestamp={showTimestamp}
           data={current}
+          authorUsername={current.authorUsername}
         />
       );
 
-      // Proceed to the next message.
       i += 1;
     }
-
     return tempMessages;
+  };
+
+
+  function onMessageSubmit(value) {
+    props.sendNewWsMessage(props.chatId, value);
+
+    msgInputRef.current.value = null
+
   }
 
     return(
+
       <div className="message-list">
         <Toolbar
-          title="Conversation Title"
+            positionOaoa={' fixed-bool'}
+            leftItems={
+              [<i className={`toolbar-button ion-ios-menu`} onClick={props.openSidebar} />]
+            }
+          title={props.conversationTitle}
           rightItems={[
-            <ToolbarButton key="info" icon="ion-ios-information-circle-outline" />,
-            <ToolbarButton key="video" icon="ion-ios-videocam" />,
-            <ToolbarButton key="phone" icon="ion-ios-call" />
+            <i className={`toolbar-button ion-ios-information-circle-outline`} onClick={props.openInfoModal}/>
           ]}
         />
+        <Element className="message-list-container" id="scroll-container">
+          {renderMessages()}
+          <Element name="scroll-container-second-element"></Element>
 
-        <div className="message-list-container">{renderMessages()}</div>
 
-        <Compose rightItems={[
-          <ToolbarButton key="photo" icon="ion-ios-camera" />,
-          <ToolbarButton key="image" icon="ion-ios-image" />,
-          <ToolbarButton key="audio" icon="ion-ios-mic" />,
-          <ToolbarButton key="money" icon="ion-ios-card" />,
-          <ToolbarButton key="games" icon="ion-logo-game-controller-b" />,
-          <ToolbarButton key="emoji" icon="ion-ios-happy" />
-        ]}/>
+        </Element>
+
+        <Compose inputRef={msgInputRef} textPropers={'zh'} onMessageSubmit={onMessageSubmit}/>
       </div>
     );
 }
